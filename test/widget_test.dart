@@ -47,4 +47,21 @@ void main() {
     expect(find.textContaining('No profiles added yet'), findsOneWidget);
     expect(find.textContaining('DISCONNECTED'), findsOneWidget);
   });
+
+  testWidgets('QuickVPN does not overflow on a small window', (tester) async {
+    // Simulate a short, narrow window where the hero + log + list would not all
+    // fit at once — the body must scroll rather than overflow.
+    tester.view.physicalSize = const Size(360, 480);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(home: QuickVpnApp(controller: FakeVpnController())),
+    );
+    await tester.pumpAndSettle();
+
+    // No RenderFlex overflow (or any other) exception was thrown during layout.
+    expect(tester.takeException(), isNull);
+  });
 }
