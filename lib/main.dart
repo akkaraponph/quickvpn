@@ -264,9 +264,9 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: SvgPicture.asset(
-          'assets/qvpn_logo.svg',
+          'assets/quick_logo.svg',
           height: 32,
-          semanticsLabel: 'Qvpn',
+          semanticsLabel: 'Quick',
         ),
         backgroundColor: Colors.white,
         elevation: 1,

@@ -42,7 +42,7 @@ void main() {
     // loader Timer outlives the test.
     await tester.pumpAndSettle();
 
-    expect(find.bySemanticsLabel('Qvpn'), findsOneWidget);
+    expect(find.bySemanticsLabel('Quick'), findsOneWidget);
     expect(find.text('Import .ovpn'), findsOneWidget);
     expect(find.textContaining('No profiles added yet'), findsOneWidget);
     expect(find.textContaining('DISCONNECTED'), findsOneWidget);
