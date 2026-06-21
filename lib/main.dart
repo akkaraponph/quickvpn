@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'profile_store.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 import 'vpn/openvpn_locator.dart';
@@ -12,9 +13,12 @@ import 'vpn/privilege_helper.dart';
 import 'vpn/vpn_controller.dart';
 import 'vpn/vpn_controller_factory.dart';
 import 'vpn/vpn_models.dart';
+import 'vpn/vpn_profile.dart';
 import 'widgets/activity_log.dart';
 import 'widgets/connect_orb.dart';
 import 'widgets/profile_tile.dart';
+
+export 'vpn/vpn_profile.dart' show VpnProfile;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,34 +49,6 @@ class QuickVpnRoot extends StatelessWidget {
   }
 }
 
-/// Model to track individual appended profiles
-class VpnProfile {
-  final String name;
-  final String rawConfig;
-  String? username;
-  String? password;
-
-  VpnProfile({
-    required this.name,
-    required this.rawConfig,
-    this.username,
-    this.password,
-  });
-
-  /// True when the config asks for interactive credentials — a bare
-  /// `auth-user-pass` directive (not an inline `<auth-user-pass>` block or a
-  /// `auth-user-pass file.txt` reference).
-  bool get requiresAuth =>
-      rawConfig.contains(RegExp(r'^\s*auth-user-pass\s*$', multiLine: true));
-
-  /// True when the config embeds a client certificate.
-  bool get hasClientCert =>
-      rawConfig.contains('<cert>') ||
-      rawConfig.contains(RegExp(r'^\s*cert\s', multiLine: true));
-
-  bool get hasCredentials => username?.isNotEmpty ?? false;
-}
-
 class QuickVpnApp extends StatefulWidget {
   /// Optional injected controller (tests pass a fake). Production leaves this
   /// null and the platform factory picks the right engine.
@@ -90,6 +66,7 @@ class QuickVpnApp extends StatefulWidget {
 
 class _QuickVpnAppState extends State<QuickVpnApp> {
   late final VpnController _vpn;
+  final ProfileStore _store = ProfileStore();
   StreamSubscription<VpnStage>? _stageSub;
   StreamSubscription<VpnStats>? _statsSub;
 
@@ -128,8 +105,28 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
   }
 
   Future<void> _bootstrap() async {
+    await _loadProfiles();
     await _vpn.initialize();
     await _refreshReadiness();
+  }
+
+  /// Restore saved profiles + selection so nothing is lost between launches.
+  Future<void> _loadProfiles() async {
+    final saved = await _store.load();
+    if (!mounted || saved.profiles.isEmpty) return;
+    setState(() {
+      _appendedProfiles
+        ..clear()
+        ..addAll(saved.profiles);
+      _selectedProfileIndex = saved.selectedIndex;
+    });
+    _log('Restored ${saved.profiles.length} saved '
+        'profile${saved.profiles.length == 1 ? '' : 's'}');
+  }
+
+  /// Write the current profiles + selection back to storage. Fire-and-forget.
+  void _persist() {
+    _store.save(_appendedProfiles, _selectedProfileIndex);
   }
 
   Future<void> _refreshReadiness() async {
@@ -225,6 +222,7 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
         );
         if (_appendedProfiles.length == 1) _selectedProfileIndex = 0;
       });
+      _persist();
       _log('Imported profile "$name"', level: LogLevel.success);
     }
   }
@@ -247,6 +245,7 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
         }
       }
     });
+    _persist();
     _log('Removed profile "${removed.name}"');
 
     if (!mounted) return;
@@ -269,6 +268,7 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
       _appendedProfiles.insert(i, profile);
       _selectedProfileIndex ??= i;
     });
+    _persist();
     _log('Restored profile "${profile.name}"');
   }
 
@@ -340,6 +340,41 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
     }
   }
 
+  Future<void> _disableSeamless() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Disable seamless connections?"),
+        content: const Text(
+          "You'll be asked for your administrator password each time you "
+          "connect again.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Cancel"),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Disable"),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      await PrivilegeHelper.removeSeamlessSudo();
+      if (mounted) setState(() => _seamless = false);
+      _log('Seamless connections disabled');
+      _showMessage("Seamless connections disabled.");
+    } on PrivilegeInstallCancelled {
+      // dismissed — no-op
+    } catch (e) {
+      _showMessage("Could not disable seamless connections: $e");
+    }
+  }
+
   /// Edit the username / password stored on a profile. Returns true if saved.
   Future<bool?> _editCredentials(VpnProfile profile) {
     final userCtrl = TextEditingController(text: profile.username ?? '');
@@ -383,6 +418,7 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
                 profile.password =
                     passCtrl.text.isEmpty ? null : passCtrl.text;
               });
+              _persist();
               Navigator.pop(ctx, true);
             },
             child: const Text("Save"),
@@ -626,12 +662,10 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
               onPressed: _makeSeamless,
             ),
           if (_isMac && _seamless)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Tooltip(
-                message: "Seamless connections enabled",
-                child: Icon(Icons.flash_on, color: AppColors.warning),
-              ),
+            IconButton(
+              tooltip: "Seamless connections enabled — tap to disable",
+              icon: const Icon(Icons.flash_on, color: AppColors.warning),
+              onPressed: _disableSeamless,
             ),
           if (widget.themeController != null)
             IconButton(
@@ -709,6 +743,7 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
                       onTap: () {
                         if (!_isConnected) {
                           setState(() => _selectedProfileIndex = index);
+                          _persist();
                         }
                       },
                       onEditCredentials: () => _editCredentials(item),
