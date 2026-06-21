@@ -38,9 +38,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: QuickVpnApp(controller: FakeVpnController())),
     );
-    await tester.pump();
+    // flutter_svg loads the logo asset asynchronously; let it settle so no
+    // loader Timer outlives the test.
+    await tester.pumpAndSettle();
 
-    expect(find.text('⚡ QuickVPN'), findsOneWidget);
+    expect(find.bySemanticsLabel('Qvpn'), findsOneWidget);
     expect(find.text('Import .ovpn'), findsOneWidget);
     expect(find.textContaining('No profiles added yet'), findsOneWidget);
     expect(find.textContaining('DISCONNECTED'), findsOneWidget);

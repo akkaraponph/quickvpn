@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'vpn/openvpn_locator.dart';
 import 'vpn/privilege_helper.dart';
@@ -262,9 +263,10 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          "⚡ QuickVPN",
-          style: TextStyle(fontWeight: FontWeight.w800, color: Colors.blue),
+        title: SvgPicture.asset(
+          'assets/qvpn_logo.svg',
+          height: 32,
+          semanticsLabel: 'Qvpn',
         ),
         backgroundColor: Colors.white,
         elevation: 1,
