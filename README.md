@@ -128,4 +128,4 @@ validated manually.
 
 ## License
 
-Private project. © refactorroom.com
+[MIT](LICENSE) © 2026 Akkarapon Phikulsri (refactorroom.com)
