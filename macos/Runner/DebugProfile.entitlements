@@ -12,5 +12,9 @@
 	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<!-- Required even with the sandbox off: file_picker's macOS plugin checks
+	     for this entitlement before opening the file panel. -->
+	<key>com.apple.security.files.user-selected.read-only</key>
+	<true/>
 </dict>
 </plist>
