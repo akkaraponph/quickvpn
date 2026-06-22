@@ -58,7 +58,17 @@ class QuickVpnApp extends StatefulWidget {
   /// tests (which mount the screen under their own [MaterialApp]).
   final ThemeController? themeController;
 
-  const QuickVpnApp({super.key, this.controller, this.themeController});
+  /// Optional profile store. Production leaves this null and the real
+  /// shared_preferences-backed store is used; tests and the screenshot demo
+  /// harness inject an in-memory store so they never touch real prefs.
+  final ProfileStore? store;
+
+  const QuickVpnApp({
+    super.key,
+    this.controller,
+    this.themeController,
+    this.store,
+  });
 
   @override
   State<QuickVpnApp> createState() => _QuickVpnAppState();
@@ -66,7 +76,7 @@ class QuickVpnApp extends StatefulWidget {
 
 class _QuickVpnAppState extends State<QuickVpnApp> {
   late final VpnController _vpn;
-  final ProfileStore _store = ProfileStore();
+  late final ProfileStore _store;
   StreamSubscription<VpnStage>? _stageSub;
   StreamSubscription<VpnStats>? _statsSub;
 
@@ -92,6 +102,7 @@ class _QuickVpnAppState extends State<QuickVpnApp> {
   @override
   void initState() {
     super.initState();
+    _store = widget.store ?? ProfileStore();
     _vpn = widget.controller ?? createVpnController();
     _stageSub = _vpn.stage.listen((s) {
       if (!mounted) return;

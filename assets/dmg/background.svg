@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" role="img" aria-label="Quick installer">
+  <defs>
+    <!-- dark hero backdrop -->
+    <linearGradient id="bg" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#0B1020"/>
+      <stop offset="0.55" stop-color="#0E1430"/>
+      <stop offset="1" stop-color="#0A0F22"/>
+    </linearGradient>
+    <!-- brand accent -->
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2E7CF6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2E7CF6" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#2E7CF6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wellFill" cx="0.5" cy="0.4" r="0.6">
+      <stop offset="0" stop-color="#1C2438" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#11182B" stop-opacity="0.55"/>
+    </radialGradient>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <!-- logo badge gradient -->
+    <linearGradient id="badge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="640" height="400" fill="url(#bg)"/>
+  <!-- ambient glows -->
+  <circle cx="176" cy="190" r="190" fill="url(#glow)" opacity="0.55"/>
+  <ellipse cx="320" cy="-40" rx="360" ry="200" fill="url(#glow)" opacity="0.35"/>
+  <!-- subtle grid hairlines -->
+  <g stroke="#1B2440" stroke-width="1" opacity="0.35">
+    <line x1="0" y1="120" x2="640" y2="120"/>
+    <line x1="0" y1="300" x2="640" y2="300"/>
+  </g>
+
+  <!-- wordmark (dark variant) -->
+  <g transform="translate(238,22) scale(0.78)">
+    <rect x="12" y="14" width="52" height="52" rx="15" fill="url(#badge)"/>
+    <path d="M42 18 L27 41 L36 41 L31 62 L51 37 L41 37 Z" fill="#FFFFFF"/>
+    <text x="78" y="54" font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+          font-size="40" font-weight="800" letter-spacing="-1.5">
+      <tspan fill="#60A5FA">Q</tspan><tspan fill="#F8FAFC">uick</tspan>
+    </text>
+  </g>
+  <text x="320" y="112" text-anchor="middle"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="14" font-weight="500" letter-spacing="0.3" fill="#8CA0C6">
+    Instant, profile-based VPN for macOS
+  </text>
+
+  <!-- drop wells behind the two icons (Finder draws icons on top) -->
+  <g>
+    <circle cx="176" cy="190" r="82" fill="url(#wellFill)" stroke="#2A3552" stroke-width="1.5"/>
+    <circle cx="464" cy="190" r="82" fill="url(#wellFill)" stroke="#2A3552" stroke-width="1.5"
+            stroke-dasharray="5 6"/>
+  </g>
+
+  <!-- connecting arrow -->
+  <g filter="url(#soft)" opacity="0.6">
+    <line x1="278" y1="190" x2="356" y2="190" stroke="url(#accent)" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <g stroke="url(#accent)" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="268" y1="190" x2="362" y2="190"/>
+    <polyline points="344,175 366,190 344,205"/>
+  </g>
+
+  <!-- step microcopy -->
+  <text x="176" y="316" text-anchor="middle"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="12" font-weight="600" letter-spacing="0.6" fill="#5E7196">STEP 1 · THE APP</text>
+  <text x="464" y="316" text-anchor="middle"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="12" font-weight="600" letter-spacing="0.6" fill="#5E7196">STEP 2 · APPLICATIONS</text>
+
+  <!-- footer pill -->
+  <g>
+    <rect x="196" y="346" width="248" height="34" rx="17" fill="#141B2E" stroke="#2A3552" stroke-width="1"/>
+    <text x="320" y="368" text-anchor="middle"
+          font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+          font-size="13" font-weight="600" fill="#C7D4EC">
+      Drag <tspan fill="#60A5FA">Quick</tspan> onto the Applications folder
+    </text>
+  </g>
+</svg>

@@ -1,7 +1,9 @@
 FLUTTER ?= flutter
-MACOS_APP := build/macos/Build/Products/Release/quickvpn.app
+APP_NAME := quickvpn
+MACOS_APP := build/macos/Build/Products/Release/$(APP_NAME).app
+DMG := build/$(APP_NAME).dmg
 
-.PHONY: build-macos run-macos open-macos clean help
+.PHONY: build-macos run-macos open-macos dmg clean help
 
 ## Build the macOS app (release)
 build-macos:
@@ -15,6 +17,10 @@ run-macos:
 ## Reveal the built .app in Finder
 open-macos:
 	open -R "$(MACOS_APP)"
+
+## Build a branded, drag-to-Applications .dmg installer
+dmg: build-macos
+	./scripts/make_dmg.sh "$(MACOS_APP)" "$(DMG)" "Quick"
 
 ## Remove build artifacts
 clean:
