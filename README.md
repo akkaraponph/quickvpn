@@ -36,22 +36,26 @@ Import your `.ovpn` profiles, see them in a clean vault, and connect with a sing
 
 <table>
   <tr>
-    <td width="50%" align="center">
-      <img src="README/images/step-1-import.png" alt="Empty state with the Import .ovpn button" width="420"><br>
+    <td align="center">
+      <img src="README/images/step-1-import.png" alt="Empty state with the Import .ovpn button" width="460"><br>
       <b>1 · Import</b><br>The vault starts empty — bring in an <code>.ovpn</code> file.
     </td>
-    <td width="50%" align="center">
-      <img src="README/images/step-2-profiles.png" alt="Profile list with a selected profile and the credentials key" width="420"><br>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="README/images/step-2-profiles.png" alt="Profile list with a selected profile and the credentials key" width="460"><br>
       <b>2 · Select &amp; set credentials</b><br>Pick a profile; tap the 🔑 to store a username/password for <code>auth-user-pass</code> profiles.
     </td>
   </tr>
   <tr>
-    <td width="50%" align="center">
-      <img src="README/images/step-3-connecting.png" alt="Connecting — busy orb and CONNECTING status" width="420"><br>
+    <td align="center">
+      <img src="README/images/step-3-connecting.png" alt="Connecting — busy orb and CONNECTING status" width="460"><br>
       <b>3 · Connect</b><br>Tap the orb and authenticate when macOS asks — status walks <code>CONNECTING → … → CONNECTED</code>.
     </td>
-    <td width="50%" align="center">
-      <img src="README/images/step-4-connected.png" alt="Connected — green orb with live throughput" width="420"><br>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="README/images/step-4-connected.png" alt="Connected — green orb with live throughput" width="460"><br>
       <b>4 · Connected</b><br>Live duration and ▼ in / ▲ out throughput while the tunnel is up.
     </td>
   </tr>
