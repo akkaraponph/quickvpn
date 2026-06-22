@@ -41,5 +41,17 @@ void main() {
       expect(defaultOpenVpnPaths, contains('/opt/homebrew/sbin/openvpn'));
       expect(defaultOpenVpnPaths, contains('/usr/local/sbin/openvpn'));
     });
+
+    test('ships Linux package locations', () {
+      expect(defaultLinuxOpenVpnPaths, contains('/usr/sbin/openvpn'));
+      expect(defaultLinuxOpenVpnPaths, contains('/usr/bin/openvpn'));
+    });
+
+    test('ships the Windows installer locations (with .exe)', () {
+      expect(defaultWindowsOpenVpnPaths,
+          contains(r'C:\Program Files\OpenVPN\bin\openvpn.exe'));
+      expect(
+          defaultWindowsOpenVpnPaths.every((p) => p.endsWith('.exe')), isTrue);
+    });
   });
 }

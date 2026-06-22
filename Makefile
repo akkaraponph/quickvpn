@@ -1,9 +1,15 @@
 FLUTTER ?= flutter
-APP_NAME := quickvpn
-MACOS_APP := build/macos/Build/Products/Release/$(APP_NAME).app
-DMG := build/$(APP_NAME).dmg
+# macOS product/app name — must match PRODUCT_NAME in macos/Runner/Configs/AppInfo.xcconfig.
+# Drives the built .app filename, the menu-bar name, and the mounted volume name.
+PRODUCT_NAME := QuickVPN
+# Lowercase slug used only for the .dmg filename, e.g. quickvpn-v1.0.0.dmg
+APP_SLUG := quickvpn
+# Version name (without build number) read from pubspec.yaml, e.g. 1.0.0
+VERSION := $(shell awk '/^version:/ {split($$2, a, "+"); print a[1]; exit}' pubspec.yaml)
+MACOS_APP := build/macos/Build/Products/Release/$(PRODUCT_NAME).app
+DMG := build/$(APP_SLUG)-v$(VERSION).dmg
 
-.PHONY: build-macos run-macos open-macos dmg clean help
+.PHONY: build-macos run-macos open-macos dmg linux win clean help
 
 ## Build the macOS app (release)
 build-macos:
@@ -20,7 +26,15 @@ open-macos:
 
 ## Build a branded, drag-to-Applications .dmg installer
 dmg: build-macos
-	./scripts/make_dmg.sh "$(MACOS_APP)" "$(DMG)" "Quick"
+	./scripts/make_dmg.sh "$(MACOS_APP)" "$(DMG)" "$(PRODUCT_NAME)"
+
+## Build + package the Linux release tarball (run on Linux)
+linux:
+	./scripts/make_linux.sh
+
+## Build + package the Windows installer/zip (run on Windows)
+win:
+	powershell -ExecutionPolicy Bypass -File scripts/make_win.ps1
 
 ## Remove build artifacts
 clean:

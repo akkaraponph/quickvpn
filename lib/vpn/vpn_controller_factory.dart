@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'linux_vpn_controller.dart';
 import 'mac_vpn_controller.dart';
 import 'mobile_vpn_controller.dart';
 import 'vpn_controller.dart';
 import 'vpn_models.dart';
+import 'windows_vpn_controller.dart';
 
 /// Returns the VPN engine appropriate for the current platform.
 VpnController createVpnController() {
   if (Platform.isMacOS) return MacVpnController();
+  if (Platform.isLinux) return LinuxVpnController();
+  if (Platform.isWindows) return WindowsVpnController();
   if (Platform.isAndroid || Platform.isIOS) return MobileVpnController();
   return UnsupportedVpnController();
 }

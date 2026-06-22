@@ -44,14 +44,16 @@ rsvg-convert -w "$((WIN_W * 2))"    -h "$((WIN_H * 2))"    "$BG_SVG" -o "$WORK/b
 # Combine into one HiDPI-aware TIFF so Retina displays get the crisp 2x art.
 tiffutil -cathidpicheck "$WORK/bg.png" "$WORK/bg@2x.png" -out "$STAGE/.background/background.tiff" >/dev/null
 
-echo "==> Building volume icon"
+echo "==> Building icon"
+ICNS="$WORK/VolumeIcon.icns"
 if [[ -f "$ICON_SRC" ]]; then
   ICONSET="$WORK/VolumeIcon.iconset"; mkdir -p "$ICONSET"
   for sz in 16 32 128 256 512; do
     sips -z "$sz"            "$sz"            "$ICON_SRC" --out "$ICONSET/icon_${sz}x${sz}.png"     >/dev/null
     sips -z "$((sz * 2))"    "$((sz * 2))"    "$ICON_SRC" --out "$ICONSET/icon_${sz}x${sz}@2x.png"  >/dev/null
   done
-  iconutil -c icns "$ICONSET" -o "$STAGE/.VolumeIcon.icns"
+  iconutil -c icns "$ICONSET" -o "$ICNS"
+  cp "$ICNS" "$STAGE/.VolumeIcon.icns"   # icon shown on the mounted volume
 fi
 
 echo "==> Staging payload"
@@ -66,11 +68,17 @@ hdiutil create -srcfolder "$STAGE" -volname "$VOL_NAME" -fs HFS+ \
 
 echo "==> Mounting"
 MOUNT_INFO="$(hdiutil attach -readwrite -noverify -noautoopen "$RW_DMG")"
-MOUNT_DEV="$(echo "$MOUNT_INFO" | grep -E '^/dev/' | head -1 | awk '{print $1}')"
-VOL_PATH="/Volumes/$VOL_NAME"
+# Read the ACTUAL device + mountpoint from hdiutil rather than assuming
+# "/Volumes/$VOL_NAME": if a volume of that name is already mounted (a stale
+# build, case-insensitive collision, etc.) macOS mounts ours at "… 1". The
+# shipped image still carries the -volname we set, so this only affects the
+# transient build mount.
+MOUNT_DEV="$(echo "$MOUNT_INFO" | grep '/Volumes/' | head -1 | awk '{print $1}')"
+VOL_PATH="$(echo "$MOUNT_INFO" | grep -oE '/Volumes/.*' | head -1)"
+VOL_LABEL="$(basename "$VOL_PATH")"
 
 echo "==> Applying window layout"
-osascript - "$VOL_NAME" "$APP_NAME" <<APPLESCRIPT
+osascript - "$VOL_LABEL" "$APP_NAME" <<APPLESCRIPT
 on run argv
   set volName to item 1 of argv
   set appName to item 2 of argv
@@ -109,5 +117,19 @@ MOUNT_DEV=""
 echo "==> Compressing"
 rm -f "$DMG_OUT"
 hdiutil convert "$RW_DMG" -format UDZO -imagekey zlib-level=9 -o "$DMG_OUT" >/dev/null
+
+echo "==> Setting .dmg file icon"
+# Give the .dmg file itself a custom Finder icon (separate from the mounted
+# volume icon above). Embed the .icns into the file's resource fork, then set
+# the "has custom icon" attribute so Finder renders it.
+if [[ -f "$ICNS" ]] && command -v Rez >/dev/null && command -v SetFile >/dev/null; then
+  cp "$ICNS" "$WORK/fileicon.icns"
+  sips -i "$WORK/fileicon.icns" >/dev/null                 # add icon resource to the icns
+  DeRez -only icns "$WORK/fileicon.icns" > "$WORK/icon.rsrc"
+  Rez -append "$WORK/icon.rsrc" -o "$DMG_OUT"
+  SetFile -a C "$DMG_OUT"
+else
+  echo "   (skipped: icon source or Rez/SetFile unavailable)"
+fi
 
 echo "==> Built: $DMG_OUT"

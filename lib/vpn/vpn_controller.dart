@@ -23,7 +23,8 @@ class VpnConnectionRequest {
 
 /// Abstract engine the UI talks to. Concrete implementations:
 ///   - MobileVpnController (Android/iOS, wraps openvpn_flutter)
-///   - MacVpnController    (macOS, drives the openvpn CLI in pure Dart)
+///   - MacVpnController / LinuxVpnController / WindowsVpnController
+///     (desktop, drive the openvpn CLI in pure Dart — see CliVpnController)
 abstract class VpnController {
   /// Connection-stage updates.
   Stream<VpnStage> get stage;

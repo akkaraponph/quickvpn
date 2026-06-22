@@ -67,45 +67,49 @@ Import your `.ovpn` profiles, see them in a clean vault, and connect with a sing
 |----------|:------:|-----|
 | **Android** | ✅ | [`openvpn_flutter`](https://pub.dev/packages/openvpn_flutter) (bundled native OpenVPN engine) |
 | **iOS** | ✅ | `openvpn_flutter` (requires a Network Extension target + paid Apple Developer account) |
-| **macOS** | ✅ | Pure-Dart launcher that drives the Homebrew `openvpn` binary via its management interface — **no Apple Developer account, no Network Extension** |
-| **Windows / Linux** | ⛔ | UI runs; connecting reports "not supported yet" |
+| **macOS** | ✅ | Pure-Dart launcher driving the `openvpn` binary via its management interface — **no Apple Developer account, no Network Extension** |
+| **Linux** | ✅ | Same launcher; gains root via PolicyKit (`pkexec`) or passwordless `sudo` |
+| **Windows** | ✅ | Same launcher; relaunches `openvpn.exe` elevated through UAC |
 
-### Why macOS is special
+### Why the desktop is special
 
-`openvpn_flutter` ships **only** Android and iOS implementations. Apple's
-"correct" path (a Network Extension `PacketTunnelProvider`) is gated behind a
-paid Apple Developer Program membership. So on macOS QuickVPN takes the
-**launcher** approach — the same mechanism Tunnelblick and OpenVPN-GUI use:
+`openvpn_flutter` ships **only** Android and iOS implementations, and Apple's
+"correct" macOS path (a Network Extension `PacketTunnelProvider`) is gated
+behind a paid Apple Developer Program membership. So on **every desktop OS**
+QuickVPN takes the **launcher** approach — the same mechanism Tunnelblick and
+OpenVPN-GUI use, shared in `lib/vpn/base_cli_vpn_controller.dart`:
 
 1. It spawns the real, battle-tested `openvpn` CLI (it does **not** reimplement
    the OpenVPN protocol).
 2. It controls and monitors that process over OpenVPN's **management interface**
    — a local loopback socket — for status, throughput, credentials, and a clean
    disconnect.
-3. Creating the tunnel device needs root, so `openvpn` is launched either via
-   the native macOS administrator dialog (default) or, optionally, a tightly
-   scoped passwordless `sudoers` rule for seamless connects.
+3. Creating the tunnel device needs root/admin, gained per platform:
+   - **macOS** — the native administrator dialog (default) or an optional,
+     tightly scoped passwordless `sudoers` rule for seamless connects.
+   - **Linux** — `pkexec` (graphical PolicyKit prompt), or passwordless `sudo`.
+   - **Windows** — UAC elevation via `Start-Process -Verb RunAs`.
 
 ## 🚀 Getting started
 
 ### Prerequisites
 - Flutter 3.44+ (Dart SDK `^3.12.2`)
-- **macOS only:** [Homebrew](https://brew.sh) + the openvpn binary:
-  ```sh
-  brew install openvpn
-  ```
-  (QuickVPN looks for it at `/opt/homebrew/sbin/openvpn` or `/usr/local/sbin/openvpn`
-  and shows an install banner if it's missing.)
+- The `openvpn` client on the host (QuickVPN drives it; it shows an install
+  banner with the right hint if it's missing):
+  - **macOS:** `brew install openvpn` (looked up in the Homebrew `sbin` paths)
+  - **Linux:** `sudo apt install openvpn` (or `dnf` / `pacman`); also `pkexec`
+    from PolicyKit for the graphical auth prompt
+  - **Windows:** the [OpenVPN community client](https://openvpn.net/community-downloads)
+    (looked up under `C:\Program Files\OpenVPN\bin\openvpn.exe`)
 
 ### Run
 ```sh
 flutter pub get
 
-# macOS
-flutter run -d macos
-
-# Android (emulator or device)
-flutter run -d <android-device>
+flutter run -d macos        # macOS
+flutter run -d linux        # Linux
+flutter run -d windows      # Windows
+flutter run -d <android>    # Android emulator or device
 ```
 
 > **macOS note:** the app sandbox is intentionally disabled (a sandboxed app
@@ -123,16 +127,20 @@ flutter run -d <android-device>
    rule (scoped to only the `openvpn` binary, validated with `visudo`) so future
    connects need no password.
 
-## 📦 Build a macOS installer
+## 📦 Build installers
 
-```sh
-make dmg
-```
+Each desktop OS builds on its own machine — Flutter can't cross-compile desktop
+targets. Output filenames are versioned from `pubspec.yaml`. Run `make help` to
+see all targets.
 
-Builds the release app and packages it into the branded, drag-to-Applications
-installer shown at the top (`build/quickvpn.dmg`). Requires `rsvg-convert`
-(`brew install librsvg`) to render the window background. Run `make help` to see
-all targets.
+| Command | Run on | Produces |
+|---------|--------|----------|
+| `make dmg` | macOS | `build/quickvpn-v<version>.dmg` — branded, drag-to-Applications, logo as the volume **and** file icon. Needs `rsvg-convert` (`brew install librsvg`). |
+| `make linux` | Linux | `build/quickvpn-v<version>-linux-<arch>.tar.gz` — bundle + `.desktop` entry, icon, and an `install.sh`. |
+| `make win` | Windows | `build/quickvpn-v<version>-windows-x64-setup.exe` via [Inno Setup](https://jrsoftware.org/isdl.php) (logo as installer + app icon), or a `.zip` if `iscc.exe` isn't on PATH. |
+
+Bump the version once in `pubspec.yaml` (e.g. `version: 1.2.0+5`) and every
+installer filename tracks it automatically.
 
 ## 🗂️ Project structure
 
